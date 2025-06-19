@@ -25,10 +25,10 @@ const PersonForm = (props) => {
   )
 }
 
-const Persons = ({names}) => {
+const Persons = (props) => {
   return(
     <div>
-      {names.map(person => <p key={person.name}>{person.name} {person.number}</p>)}
+      {props.names.map(person => <p key={person.name}>{person.name} {person.number} <button onClick={() => props.removing(person.id, person.name)}> delete </button></p>)}
     </div>
   )
 }
@@ -61,16 +61,24 @@ const App = () => {
     event.preventDefault()
     let status=true
     let i, len=''
-    for (i=0, len=persons.length; i<len; i++) {
-      if (persons[i].name == newName) {
-        status=false
-        alert(`${newName} is already added to phonebook`)
-      }
-    }
     const nameObject = {
       name: newName,
       number: newNumber
     }
+
+    for (i=0, len=persons.length; i<len; i++) {
+      if (persons[i].name == newName) {
+        status=false
+        if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+          personService
+            .update(persons[i].id, nameObject)
+            .then(response => {
+              setPersons(persons.map(person => person.id !== response.data.id ? person : response.data))
+            })
+        }
+      }
+    }
+    
     if (status) {
       personService
         .create(nameObject)
@@ -84,6 +92,16 @@ const App = () => {
 
   const namesToShow = persons.filter(person => person.name.toLowerCase().includes(newFilter.toLowerCase())) 
 
+  const removePerson = (id, name) => {
+    if (window.confirm(`Delete ${name} ?`)) {
+      personService
+        .removeName(id)
+        .then(response => {
+          setPersons(persons.filter(person => person.id != response.data.id))
+        })
+    }
+  }
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -91,7 +109,7 @@ const App = () => {
       <h3>add a new</h3>
       <PersonForm add={addName} name={newName} namehandler={handleNameChange} number={newNumber} numberhandler={handleNumberChange} />
       <h3>Numbers</h3>
-      <Persons names={namesToShow} />
+      <Persons names={namesToShow} removing={removePerson} />
     </div>
   )
 
