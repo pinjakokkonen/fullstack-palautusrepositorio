@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
+import Notification from './components/Notification'
 
 const Filter = (props) => {
   return(
@@ -33,11 +34,13 @@ const Persons = (props) => {
   )
 }
 
+
 const App = () => {
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
+  const [userMessage, setUserMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -74,7 +77,14 @@ const App = () => {
             .update(persons[i].id, nameObject)
             .then(response => {
               setPersons(persons.map(person => person.id !== response.data.id ? person : response.data))
+              setUserMessage(`Changed ${newName}`)
             })
+            .catch(error => {
+              setUserMessage(`tInformation of ${newName} has already been removed from server`)
+            })
+          setTimeout(() => {
+            setUserMessage(null)
+          }, 5000)
         }
       }
     }
@@ -85,6 +95,10 @@ const App = () => {
         .then(response => {
           setPersons(persons.concat(response.data))
         })
+      setUserMessage(`Added ${newName}`)
+      setTimeout(() => {
+        setUserMessage(null)
+      }, 5000)
     }
     setNewName('')
     setNewNumber('')
@@ -99,12 +113,17 @@ const App = () => {
         .then(response => {
           setPersons(persons.filter(person => person.id != response.data.id))
         })
+      setUserMessage(`Deleted ${name}`)
+      setTimeout(() => {
+        setUserMessage(null)
+      }, 5000)
     }
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={userMessage} />
       <Filter filter={newFilter} handler={handleFilterChange} />
       <h3>add a new</h3>
       <PersonForm add={addName} name={newName} namehandler={handleNameChange} number={newNumber} numberhandler={handleNumberChange} />
