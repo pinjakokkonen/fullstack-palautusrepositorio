@@ -1,18 +1,18 @@
-const Notification = ({ message }) => {
-  if (message === null) {
-    return null
+const Notification = (props) => {
+  if (props.message === null) {
+    if (props.error === null) {
+      return null
+    } else {
+      return (
+      <div className="error">
+        {props.error}
+      </div>
+    )}
   }
-
-  if (message[0] === 't') {
-    return (
-    <div className="error">
-      {message.slice(1)}
-    </div>
-  )}
 
   return (
     <div className="message">
-      {message}
+      {props.message}
     </div>
   )
 }

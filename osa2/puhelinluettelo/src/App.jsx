@@ -41,6 +41,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
   const [userMessage, setUserMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -78,13 +79,16 @@ const App = () => {
             .then(response => {
               setPersons(persons.map(person => person.id !== response.data.id ? person : response.data))
               setUserMessage(`Changed ${newName}`)
+              setTimeout(() => {
+                setUserMessage(null)
+              }, 5000)
             })
             .catch(error => {
-              setUserMessage(`tInformation of ${newName} has already been removed from server`)
+              setErrorMessage(`Information of ${newName} has already been removed from server`)
+              setTimeout(() => {
+                setErrorMessage(null)
+              }, 5000)
             })
-          setTimeout(() => {
-            setUserMessage(null)
-          }, 5000)
         }
       }
     }
@@ -94,11 +98,18 @@ const App = () => {
         .create(nameObject)
         .then(response => {
           setPersons(persons.concat(response.data))
+          setUserMessage(`Added ${newName}`)
+          setTimeout(() => {
+            setUserMessage(null)
+          }, 5000)
         })
-      setUserMessage(`Added ${newName}`)
-      setTimeout(() => {
-        setUserMessage(null)
-      }, 5000)
+        .catch(error => {
+          console.log(error.response.data)
+          setErrorMessage(error.response.data.error)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+        })
     }
     setNewName('')
     setNewNumber('')
@@ -123,7 +134,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={userMessage} />
+      <Notification message={userMessage} error={errorMessage} />
       <Filter filter={newFilter} handler={handleFilterChange} />
       <h3>add a new</h3>
       <PersonForm add={addName} name={newName} namehandler={handleNameChange} number={newNumber} numberhandler={handleNumberChange} />
