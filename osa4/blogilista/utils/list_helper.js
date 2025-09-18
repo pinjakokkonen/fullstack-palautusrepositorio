@@ -31,9 +31,30 @@ const mostBlogs = (blogs) => {
   return {author: person, blogs: most}
 }
 
+const mostLikes = (blogs) => {
+  const names = _.groupBy(blogs, 'author')
+  let likesAmount = 0
+  let authorName = ''
+
+  for (const i in names) {
+    const person = names[i]
+    let sumoflikes = 0
+    for (const j in person) {
+      sumoflikes = sumoflikes + person[j].likes
+    }
+    if (sumoflikes>likesAmount) {
+      likesAmount = sumoflikes
+      authorName = i
+    }
+  }
+
+  return {author: authorName, likes: likesAmount}
+}
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
-  mostBlogs
+  mostBlogs,
+  mostLikes
 }
