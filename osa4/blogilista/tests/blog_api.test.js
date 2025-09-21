@@ -47,6 +47,13 @@ test('all blogs are returned', async () => {
   assert.strictEqual(response.body.length, initialBlogs.length)
 })
 
+test('blogs identifying field is id', async () => {
+  const response = await api.get('/api/blogs')
+  const result = Object.keys(response.body[0])
+
+  assert(result.includes('id'))
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
