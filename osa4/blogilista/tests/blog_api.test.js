@@ -75,6 +75,26 @@ test('a valid blog can be added ', async () => {
   assert.strictEqual(response.body.length, initialBlogs.length + 1)
 })
 
+test('likes are 0 if not specified ', async () => {
+  const newBlog = {
+    _id: "5a422b891b54a676234d17fa",
+    title: "First class tests",
+    author: "Robert C. Martin",
+    url: "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",
+    __v: 0
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  assert.strictEqual(response.body[response.body.length-1]['likes'], 0)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
