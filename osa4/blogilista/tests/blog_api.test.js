@@ -11,10 +11,7 @@ const api = supertest(app)
 describe('when there is initially some blogs saved', () => {
   beforeEach(async () => {
     await Blog.deleteMany({})
-    let blogObject = new Blog(helper.initialBlogs[0])
-    await blogObject.save()
-    blogObject = new Blog(helper.initialBlogs[1])
-    await blogObject.save()
+    await Blog.insertMany(helper.initialBlogs)
   })
 
   test('blogs are returned as json', async () => {
@@ -112,6 +109,31 @@ describe('when there is initially some blogs saved', () => {
 
     assert(!titles.includes('React patterns'))
     assert.strictEqual(blogsAtEnd.length, blogs.length - 1)
+  })
+
+  test('a blog can be modified', async () => {
+    const blogs = await Blog.find({})
+    blogs.map(note => note.toJSON())
+    const blogToChange = blogs[0]
+
+    const newBlog = {
+        title: "Canonical string reduction",
+        author: "Robert C. Martin",
+        url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
+        likes: 1
+      }
+
+    await api.put(`/api/blogs/${blogToChange.id}`)
+    .send(newBlog)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await Blog.find({})
+    blogsAtEnd.map(blog => blog.toJSON())
+    const titles = blogsAtEnd.map(blog => blog.title)
+
+    assert(titles.includes('Canonical string reduction'))
+    assert.strictEqual(blogsAtEnd.length, blogs.length)
   })
 })
 
