@@ -96,7 +96,7 @@ describe('when there is initially some blogs saved', () => {
 
   test('a blog can be deleted', async () => {
     const blogs = await Blog.find({})
-    blogs.map(note => note.toJSON())
+    blogs.map(blog => blog.toJSON())
     const blogToDelete = blogs[0]
 
     await api
@@ -104,7 +104,7 @@ describe('when there is initially some blogs saved', () => {
     .expect(204)
 
     const blogsAtEnd = await Blog.find({})
-    blogsAtEnd.map(note => note.toJSON())
+    blogsAtEnd.map(blog => blog.toJSON())
     const titles = blogsAtEnd.map(blog => blog.title)
 
     assert(!titles.includes('React patterns'))
@@ -113,7 +113,7 @@ describe('when there is initially some blogs saved', () => {
 
   test('a blog can be modified', async () => {
     const blogs = await Blog.find({})
-    blogs.map(note => note.toJSON())
+    blogs.map(blog => blog.toJSON())
     const blogToChange = blogs[0]
 
     const newBlog = {
