@@ -13,9 +13,6 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('')
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
   const blogFormRef = useRef()
 
   useEffect(() => {
@@ -44,45 +41,32 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
-      setErrorMessage('logged in successfully')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      newMessage('logged in successfully')
     } catch {
-      setErrorMessage('wrong username or password')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      newMessage('wrong username or password')
     }
   }
 
   const handleLogout = () => {
     window.localStorage.clear()
     setUser(null)
-    setErrorMessage('logged out successfully')
+    newMessage('logged out successfully')
+  }
+
+  const newMessage = (message) => {
+    setErrorMessage(message)
     setTimeout(() => {
       setErrorMessage(null)
     }, 5000)
   }
 
-  const handleCreation = async event => {
-    event.preventDefault()
+  const addBlog = async newBlog => {
     try {
-      const newBlog = {'title':title, 'author':author, 'url':url}
-      await blogService.create(newBlog)
-      blogFormRef.current.toggleVisibility()
-      setErrorMessage(`a new blog ${title} by ${author} added`)
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
-      setTitle('')
-      setAuthor('')
-      setUrl('')
+        await blogService.create(newBlog)
+        blogFormRef.current.toggleVisibility()
+        newMessage(`a new blog ${newBlog['title']} by ${newBlog['author']} added`)
     } catch {
-      setErrorMessage('failed to add blog')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+        newMessage('failed to add blog')
     }
   }
 
@@ -126,13 +110,8 @@ const App = () => {
       <button onClick={handleLogout}>logout</button>
       <Togglable buttonLabel='creation' ref={blogFormRef}>
         <BlogForm
-          title={title}
-          author={author}
-          url={url}
-          handleTitleChange={({ target }) => setTitle(target.value)}
-          handleAuthorChange={({ target }) => setAuthor(target.value)}
-          handleUrlChange={({ target }) => setUrl(target.value)}
-          handleCreation={handleCreation}
+          newMessage={newMessage}
+          createBlog={addBlog}
         />
       </Togglable>
       {blogs.map(blog =>
