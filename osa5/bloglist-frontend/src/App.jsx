@@ -70,6 +70,15 @@ const App = () => {
     }
   }
 
+  const updateBlog = async (id, newBlog) => {
+    try {
+        await blogService.update(id, newBlog)
+        newMessage(`blog updated`)
+    } catch {
+        newMessage('failed to update blog')
+    }
+  }
+
   if (user === null) {
     return (
       <div>
@@ -115,7 +124,7 @@ const App = () => {
         />
       </Togglable>
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog} updateBlog={updateBlog}/>
       )}
     </div>
   )
