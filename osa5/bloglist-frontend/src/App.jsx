@@ -62,20 +62,29 @@ const App = () => {
 
   const addBlog = async newBlog => {
     try {
-        await blogService.create(newBlog)
-        blogFormRef.current.toggleVisibility()
-        newMessage(`a new blog ${newBlog['title']} by ${newBlog['author']} added`)
+      await blogService.create(newBlog)
+      blogFormRef.current.toggleVisibility()
+      newMessage(`a new blog ${newBlog['title']} by ${newBlog['author']} added`)
     } catch {
-        newMessage('failed to add blog')
+      newMessage('failed to add blog')
     }
   }
 
   const updateBlog = async (id, newBlog) => {
     try {
-        await blogService.update(id, newBlog)
-        newMessage(`blog updated`)
+      await blogService.update(id, newBlog)
+      newMessage(`blog updated`)
     } catch {
-        newMessage('failed to update blog')
+      newMessage('failed to update blog')
+    }
+  }
+
+  const deleteBlog = async id => {
+    try {
+      await blogService.remove(id)
+      newMessage(`blog deleted`)
+    } catch {
+      newMessage('failed to delete blog')
     }
   }
 
@@ -124,7 +133,7 @@ const App = () => {
         />
       </Togglable>
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} updateBlog={updateBlog}/>
+        <Blog key={blog.id} blog={blog} updateBlog={updateBlog} deleteBlog={deleteBlog}/>
       )}
     </div>
   )
