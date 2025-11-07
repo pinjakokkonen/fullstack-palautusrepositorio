@@ -18,13 +18,13 @@ const Blog = ({ blog, updateBlog, deleteBlog }) => {
     setVisible(!visible)
   }
 
-  const likeBlog = async event => {
+  const likeBlog = async () => {
     const newLikes = blog.likes + 1
-    const newBlog = {'user': blog.user.id, 'title':blog.title, 'author':blog.author, 'url':blog.url, 'likes': newLikes}
+    const newBlog = { 'user': blog.user.id, 'title':blog.title, 'author':blog.author, 'url':blog.url, 'likes': newLikes }
     updateBlog(blog.id, newBlog)
   }
 
-  const removeBlog = async event => {
+  const removeBlog = async () => {
     if (window.confirm(`Remove blog ${blog.title}`)) {
       deleteBlog(blog.id)
     }
@@ -45,7 +45,7 @@ const Blog = ({ blog, updateBlog, deleteBlog }) => {
         <p>{blog.user.name}</p>
         <button onClick={removeBlog}>remove</button>
       </div>
-    </div> 
-)}
+    </div>
+  )}
 
 export default Blog

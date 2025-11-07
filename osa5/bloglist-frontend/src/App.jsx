@@ -11,14 +11,14 @@ const App = () => {
   const [blogs, setBlogs] = useState([])
   const [errorMessage, setErrorMessage] = useState(null)
   const [user, setUser] = useState(null)
-  const [username, setUsername] = useState('') 
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs.sort((a, b) => b.likes - a.likes) )
-    )  
+    )
   }, [])
 
   useEffect(() => {
@@ -73,7 +73,7 @@ const App = () => {
   const updateBlog = async (id, newBlog) => {
     try {
       await blogService.update(id, newBlog)
-      newMessage(`blog updated`)
+      newMessage('blog updated')
     } catch {
       newMessage('failed to update blog')
     }
@@ -82,7 +82,7 @@ const App = () => {
   const deleteBlog = async id => {
     try {
       await blogService.remove(id)
-      newMessage(`blog deleted`)
+      newMessage('blog deleted')
     } catch {
       newMessage('failed to delete blog')
     }
