@@ -42,3 +42,26 @@ test('when clicking view button everything is shown', async () => {
   const element4 = screen.getByText('user')
   expect(element4).toBeVisible()
 })
+
+test('clicking the like button calls event handler', async () => {
+  const blog = {
+    title: 'title',
+    author: 'author',
+    url: 'url',
+    likes: 0,
+    user: { name: 'user' }
+  }
+
+  const mockHandler = vi.fn()
+
+  render(<Blog blog={blog} updateBlog={mockHandler} />)
+
+  const user = userEvent.setup()
+  const button = screen.getByText('view')
+  await user.click(button)
+  const likeButton = screen.getByText('like')
+  await user.click(likeButton)
+  await user.click(likeButton)
+
+  expect(mockHandler.mock.calls).toHaveLength(2)
+})
