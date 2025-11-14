@@ -92,5 +92,25 @@ describe('Blog app', () => {
       await page.getByRole('button', { name: 'view' }).click()
       await expect(page.getByText('remove')).not.toBeVisible()
     })
+
+    test('blogs are ordered by likes', async ({ page }) => {
+      await createBlog(page, 'blog1', 'author1', 'http://localhost/')
+      await createBlog(page, 'blog2', 'author2', 'http://localhost/')
+      await createBlog(page, 'blog3', 'author3', 'http://localhost/')
+      await page.reload()
+
+      await page.getByText('blog2').locator('..').getByRole('button', { name: 'view' }).click()
+      await page.getByText('blog2').locator('..').getByRole('button', { name: 'like' }).click()
+      await page.getByText('blog3').locator('..').getByRole('button', { name: 'view' }).click()
+      await page.getByText('blog3').locator('..').getByRole('button', { name: 'like' }).click()
+
+      await page.reload()
+      await page.getByText('blog2').locator('..').getByRole('button', { name: 'view' }).click()
+      await page.getByText('blog2').locator('..').getByRole('button', { name: 'like' }).click()
+      
+      await page.reload()
+      await page.getByRole('button', { name: 'view' }).first().click()
+      await expect(page.getByText('2like')).toBeVisible()
+    })
   })
 })
