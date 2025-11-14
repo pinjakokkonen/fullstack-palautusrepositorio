@@ -75,5 +75,22 @@ describe('Blog app', () => {
       await page.getByRole('button', { name: 'remove' }).click()
       await expect(page.getByText('blog deleted')).toBeVisible()
     })
+
+    test('user can not delete others blogs', async ({ page, request }) => {
+      await createBlog(page, 'title', 'author', 'http://localhost/')
+      await page.reload()
+      await page.getByRole('button', { name: 'logout' }).click()
+
+      await request.post('/api/users', {
+        data: {
+          name: 'toinen käyttäjä',
+          username: 'nimi',
+          password: 'salasana'
+        }
+      })
+      await loginWith(page, 'nimi', 'salasana')
+      await page.getByRole('button', { name: 'view' }).click()
+      await expect(page.getByText('remove')).not.toBeVisible()
+    })
   })
 })
