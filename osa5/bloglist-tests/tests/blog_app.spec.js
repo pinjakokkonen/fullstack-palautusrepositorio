@@ -1,9 +1,10 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test')
+const { createBlog, loginWith } = require('./helper')
 
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
-    await request.post('http://localhost:3003/api/testing/reset')
-    await request.post('http://localhost:3003/api/users', {
+    await request.post('/api/testing/reset')
+    await request.post('/api/users', {
       data: {
         name: 'Matti Luukkainen',
         username: 'mluukkai',
@@ -11,7 +12,7 @@ describe('Blog app', () => {
       }
     })
 
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
   })
 
   test('Login form is shown', async ({ page }) => {
@@ -25,17 +26,13 @@ describe('Blog app', () => {
 
   describe('Login', () => {
     test('succeeds with correct credentials', async ({ page }) => {
-      await page.getByLabel('username').fill('mluukkai')
-      await page.getByLabel('password').fill('salainen')
-      await page.getByRole('button', { name: 'login' }).click()
+      await loginWith(page, 'mluukkai', 'salainen')
 
       await expect(page.getByText('Matti Luukkainen logged in')).toBeVisible()
     })
 
     test('fails with wrong credentials', async ({ page }) => {
-      await page.getByLabel('username').fill('mluukkai')
-      await page.getByLabel('password').fill('salaine')
-      await page.getByRole('button', { name: 'login' }).click()
+      await loginWith(page, 'mluukkai', 'salaine')
 
       await expect(page.getByText('wrong username or password')).toBeVisible()
     })
@@ -43,23 +40,30 @@ describe('Blog app', () => {
 
   describe('When logged in', () => {
     beforeEach(async ({ page }) => {
-      await page.getByLabel('username').fill('mluukkai')
-      await page.getByLabel('password').fill('salainen')
-      await page.getByRole('button', { name: 'login' }).click()
+      await loginWith(page, 'mluukkai', 'salainen')
     })
 
     test('a new blog can be created', async ({ page }) => {
-      await page.getByRole('button', { name: 'creation' }).click()
-
-      await page.getByLabel('title').fill('title')
-      await page.getByLabel('author').fill('author')
-      await page.getByLabel('url').fill('http://localhost/')
-      await page.getByRole('button', { name: 'create' }).click()
+      await createBlog(page, 'title', 'author', 'http://localhost/')
 
       await expect(page.getByText('a new blog title by author added')).toBeVisible()
 
       await page.reload()
       await expect(page.getByText('title authorview')).toBeVisible()
+    })
+
+    test('blog can be liked', async ({ page }) => {
+      await createBlog(page, 'title', 'author', 'http://localhost/')
+
+      await page.reload()
+      await page.getByRole('button', { name: 'view' }).click()
+      await expect(page.getByText('0')).toBeVisible()
+      await page.getByRole('button', { name: 'like' }).click()
+      await expect(page.getByText('blog updated')).toBeVisible()
+      
+      await page.reload()
+      await page.getByRole('button', { name: 'view' }).click()
+      await expect(page.getByText('1')).toBeVisible()
     })
   })
 })
