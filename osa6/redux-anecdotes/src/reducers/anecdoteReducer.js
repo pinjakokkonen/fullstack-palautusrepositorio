@@ -27,6 +27,8 @@ const reducer = (state = initialState, action) => {
       const votedAnecdote = state.filter(one => one.id===action.payload.id)[0]
       const changeVote = {...votedAnecdote, votes: votedAnecdote.votes+1}
       return state.map(anecdote => (anecdote.id !== action.payload.id ? anecdote : changeVote))
+    case 'NEW_ANECDOTE':
+      return [...state, action.payload]
     default:
       return state
   }
