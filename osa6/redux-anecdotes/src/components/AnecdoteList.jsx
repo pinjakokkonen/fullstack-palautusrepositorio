@@ -15,7 +15,7 @@ const AnecdoteList = () => {
     dispatch(voteAnecdote(id))
   }
 
-  const sortedAnecdotes = anecdotes.sort((a, b) => b.votes - a.votes)
+  const sortedAnecdotes = Object.values(anecdotes).sort((a, b) => b.votes - a.votes)
 
   return(
     <div>
