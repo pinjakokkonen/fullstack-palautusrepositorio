@@ -43,8 +43,10 @@ const voteNew = async (id) => {
   if (!response.ok) {
     throw new Error('Failed to vote anecdote')
   }
+
+  const newList = await fetch(baseUrl)
   
-  return await response.json()
+  return await newList.json()
 }
 
 export default { getAll, createNew, voteNew }

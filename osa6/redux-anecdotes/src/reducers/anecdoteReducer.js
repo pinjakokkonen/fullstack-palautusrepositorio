@@ -12,7 +12,7 @@ const anecdoteSlice = createSlice({
       state.push(content)
     },
     voteAnecdote(state, action) {
-      state.push(action.payload)
+      return action.payload
     },
     setAnecdotes(state, action) {
       return action.payload
