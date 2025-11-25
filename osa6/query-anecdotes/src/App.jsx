@@ -4,23 +4,13 @@ import { getAnecdotes, updateAnecdote } from './requests'
 import AnecdoteForm from './components/AnecdoteForm'
 import Notification from './components/Notification'
 
-import { useReducer } from 'react'
+import { useContext } from 'react'
 import NotificationContext from './NotificationContext'
 
-const notificationReducer = (state, action) => {
-  switch (action.type) {
-    case 'NEW_VOTE':
-      return `anecdote ${action.payload} voted`
-    case 'NEW_ANECDOTE':
-      return `anecdote ${action.payload} created`
-    default:
-      return
-  }
-}
 
 const App = () => {
-  const [notification, notificationDispatch] = useReducer(notificationReducer, null)
   const queryClient = useQueryClient()
+  const { notificationDispatch } = useContext(NotificationContext)
 
   const updateAnecdoteMutation = useMutation({
     mutationFn: updateAnecdote,
@@ -56,7 +46,6 @@ const App = () => {
   const anecdotes = result.data
 
   return (
-    <NotificationContext.Provider value={{ notification, notificationDispatch }}>
     <div>
       <h3>Anecdote app</h3>
 
@@ -73,7 +62,6 @@ const App = () => {
         </div>
       ))}
     </div>
-    </NotificationContext.Provider>
   )
 }
 
