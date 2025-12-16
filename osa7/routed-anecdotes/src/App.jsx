@@ -34,7 +34,7 @@ const Anecdote = ({ anecdotes }) => {
 
   return (
     <div>
-      <h2>{anecdote.content}</h2>
+      <h2>{anecdote.content} by {anecdote.author}</h2>
       <p>has {anecdote.votes} votes</p>
       <p>for more info see <a href={anecdote.info}>{anecdote.info}</a></p>
     </div>
@@ -69,6 +69,7 @@ const CreateNew = (props) => {
   const author = useField('text')
   const info = useField('text')
 
+  const noReset = ({reset, ...rest}) => rest
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -93,15 +94,15 @@ const CreateNew = (props) => {
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input type={content.type} value={content.value} onChange={content.onChange} />
+          <input {...noReset(content)} />
         </div>
         <div>
           author
-          <input type={author.type} value={author.value} onChange={author.onChange} />
+          <input {...noReset(author)} />
         </div>
         <div>
           url for more info
-          <input type={info.type} value={info.value} onChange={info.onChange} />
+          <input {...noReset(info)} />
         </div>
         <button>create</button>
       </form>
