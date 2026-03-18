@@ -1,0 +1,208 @@
+const assert = require('node:assert')
+const { test, after, beforeEach, describe } = require('node:test')
+const mongoose = require('mongoose')
+const supertest = require('supertest')
+const app = require('../app')
+const helper = require('./test_helper')
+const Blog = require('../models/blog')
+const User = require('../models/user')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+
+const api = supertest(app)
+
+describe('when there is initially some blogs saved', () => {
+    beforeEach(async () => {
+        await Blog.deleteMany({})
+        await Blog.insertMany(helper.initialBlogs)
+
+        await User.deleteMany({})
+        const passwordHash = await bcrypt.hash('sekret', 10)
+        const user = new User({ username: 'test', user: 'mmm', passwordHash })
+        await user.save()
+    })
+
+    test('blogs are returned as json', async () => {
+        await api
+            .get('/api/blogs')
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+    })
+
+    test('all blogs are returned', async () => {
+        const response = await api.get('/api/blogs')
+
+        assert.strictEqual(response.body.length, helper.initialBlogs.length)
+    })
+
+    test('blogs identifying field is id', async () => {
+        const response = await api.get('/api/blogs')
+        const result = Object.keys(response.body[0])
+
+        assert(result.includes('id'))
+    })
+
+    describe('addition of a new blog', () => {
+        test('a valid blog can be added ', async () => {
+            const newUser = await User.findOne({ username: 'test' })
+
+            const userObject = {
+                username: newUser.username,
+                id: newUser._id,
+            }
+
+            const token = jwt.sign(userObject, process.env.SECRET)
+
+            const newBlog = {
+                _id: '5a422b3a1b54a676234d17f9',
+                title: 'Canonical string reduction',
+                author: 'Edsger W. Dijkstra',
+                url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+                likes: 12,
+            }
+
+            await api
+                .post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
+                .send(newBlog)
+                .expect(201)
+                .expect('Content-Type', /application\/json/)
+
+            const response = await api.get('/api/blogs')
+
+            assert.strictEqual(
+                response.body.length,
+                helper.initialBlogs.length + 1
+            )
+        })
+
+        test('likes are 0 if not specified ', async () => {
+            const newUser = await User.findOne({ username: 'test' })
+
+            const userObject = {
+                username: newUser.username,
+                id: newUser._id,
+            }
+
+            const token = jwt.sign(userObject, process.env.SECRET)
+
+            const newBlog = {
+                _id: '5a422b891b54a676234d17fa',
+                title: 'First class tests',
+                author: 'Robert C. Martin',
+                url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll',
+                __v: 0,
+            }
+
+            await api
+                .post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
+                .send(newBlog)
+                .expect(201)
+                .expect('Content-Type', /application\/json/)
+
+            const response = await api.get('/api/blogs')
+
+            assert.strictEqual(
+                response.body[response.body.length - 1]['likes'],
+                0
+            )
+        })
+
+        test('blog requires title and url', async () => {
+            const newUser = await User.findOne({ username: 'test' })
+
+            const userObject = {
+                username: newUser.username,
+                id: newUser._id,
+            }
+
+            const token = jwt.sign(userObject, process.env.SECRET)
+
+            const newBlog = {
+                _id: '5a422ba71b54a676234d17fb',
+                author: 'Robert C. Martin',
+                likes: 0,
+            }
+
+            await api
+                .post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
+                .send(newBlog)
+                .expect(400)
+
+            const response = await api.get('/api/blogs')
+
+            assert.strictEqual(response.body.length, helper.initialBlogs.length)
+        })
+    })
+
+    test('a blog can be deleted', async () => {
+        const newUser = await User.findOne({ username: 'test' })
+
+        const userObject = {
+            username: newUser.username,
+            id: newUser._id,
+        }
+
+        const token = jwt.sign(userObject, process.env.SECRET)
+
+        const blogs = await Blog.find({})
+        blogs.map((blog) => blog.toJSON())
+
+        const newBlog = {
+            title: 'Canonical string reduction',
+            author: 'Robert C. Martin',
+            url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+        }
+
+        const blogToDelete = await api
+            .post('/api/blogs')
+            .set('Authorization', `Bearer ${token}`)
+            .send(newBlog)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
+
+        await api
+            .delete(`/api/blogs/${blogToDelete.body.id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .expect(204)
+
+        const blogsAtEnd = await Blog.find({})
+        blogsAtEnd.map((blog) => blog.toJSON())
+        const titles = blogsAtEnd.map((blog) => blog.title)
+
+        assert(!titles.includes('Canonical string reduction'))
+        assert.strictEqual(blogsAtEnd.length, blogs.length)
+    })
+
+    test('a blog can be modified', async () => {
+        const blogs = await Blog.find({})
+        blogs.map((blog) => blog.toJSON())
+        const blogToChange = blogs[0]
+
+        const newBlog = {
+            title: 'Canonical string reduction',
+            author: 'Robert C. Martin',
+            url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+            likes: 1,
+        }
+
+        await api
+            .put(`/api/blogs/${blogToChange.id}`)
+            .send(newBlog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+
+        const blogsAtEnd = await Blog.find({})
+        blogsAtEnd.map((blog) => blog.toJSON())
+        const titles = blogsAtEnd.map((blog) => blog.title)
+
+        assert(titles.includes('Canonical string reduction'))
+        assert.strictEqual(blogsAtEnd.length, blogs.length)
+    })
+})
+
+after(async () => {
+    await mongoose.connection.close()
+})
