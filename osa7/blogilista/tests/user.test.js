@@ -9,71 +9,71 @@ const assert = require('node:assert')
 const api = supertest(app)
 
 const usersInDb = async () => {
-    const users = await User.find({})
-    return users.map((u) => u.toJSON())
+  const users = await User.find({})
+  return users.map((u) => u.toJSON())
 }
 
 describe('when there is initially one user at db', () => {
-    beforeEach(async () => {
-        await User.deleteMany({})
+  beforeEach(async () => {
+    await User.deleteMany({})
 
-        const passwordHash = await bcrypt.hash('sekret', 10)
-        const user = new User({ username: 'root', passwordHash })
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'root', passwordHash })
 
-        await user.save()
-    })
+    await user.save()
+  })
 
-    test('creation succeeds with a fresh username', async () => {
-        const usersAtStart = await usersInDb()
+  test('creation succeeds with a fresh username', async () => {
+    const usersAtStart = await usersInDb()
 
-        const newUser = {
-            username: 'mluukkai',
-            name: 'Matti Luukkainen',
-            password: 'salainen',
-        }
+    const newUser = {
+      username: 'mluukkai',
+      name: 'Matti Luukkainen',
+      password: 'salainen',
+    }
 
-        await api
-            .post('/api/users')
-            .send(newUser)
-            .expect(201)
-            .expect('Content-Type', /application\/json/)
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
 
-        const usersAtEnd = await usersInDb()
-        assert.strictEqual(usersAtEnd.length, usersAtStart.length + 1)
+    const usersAtEnd = await usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length + 1)
 
-        const usernames = usersAtEnd.map((u) => u.username)
-        assert(usernames.includes(newUser.username))
-    })
+    const usernames = usersAtEnd.map((u) => u.username)
+    assert(usernames.includes(newUser.username))
+  })
 
-    test('creation fails if username in users', async () => {
-        const usersAtStart = await usersInDb()
+  test('creation fails if username in users', async () => {
+    const usersAtStart = await usersInDb()
 
-        const newUser = {
-            username: 'root',
-            password: 'salainen',
-        }
+    const newUser = {
+      username: 'root',
+      password: 'salainen',
+    }
 
-        await api.post('/api/users').send(newUser).expect(400)
+    await api.post('/api/users').send(newUser).expect(400)
 
-        const usersAtEnd = await usersInDb()
-        assert.strictEqual(usersAtEnd.length, usersAtStart.length)
-    })
+    const usersAtEnd = await usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
 
-    test('creation fails if password is too short', async () => {
-        const usersAtStart = await usersInDb()
+  test('creation fails if password is too short', async () => {
+    const usersAtStart = await usersInDb()
 
-        const newUser = {
-            username: 'mluukkai',
-            password: 'aa',
-        }
+    const newUser = {
+      username: 'mluukkai',
+      password: 'aa',
+    }
 
-        await api.post('/api/users').send(newUser).expect(400)
+    await api.post('/api/users').send(newUser).expect(400)
 
-        const usersAtEnd = await usersInDb()
-        assert.strictEqual(usersAtEnd.length, usersAtStart.length)
-    })
+    const usersAtEnd = await usersInDb()
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
 })
 
 after(async () => {
-    await mongoose.connection.close()
+  await mongoose.connection.close()
 })
