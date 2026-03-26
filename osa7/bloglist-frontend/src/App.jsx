@@ -7,9 +7,11 @@ import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
 import { useDispatch } from 'react-redux'
 import { setNotification } from './reducers/notificationReducer'
+import { setBlogs, createBlogs, likeBlog, removeBlog } from './reducers/blogReducer'
+import { useSelector } from 'react-redux'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
+  const blogs = useSelector((state) => state.blog)
   const [user, setUser] = useState(null)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -19,7 +21,7 @@ const App = () => {
   useEffect(() => {
     blogService
       .getAll()
-      .then((blogs) => setBlogs(blogs.sort((a, b) => b.likes - a.likes)))
+      .then((blogs) => dispatch(setBlogs(blogs.sort((a, b) => b.likes - a.likes))))
   }, [])
 
   useEffect(() => {
@@ -54,7 +56,8 @@ const App = () => {
 
   const addBlog = async (newBlog) => {
     try {
-      await blogService.create(newBlog)
+      const addedblog = await blogService.create(newBlog)
+      dispatch(createBlogs(addedblog))
       blogFormRef.current.toggleVisibility()
       dispatch(
         setNotification(
@@ -68,7 +71,8 @@ const App = () => {
 
   const updateBlog = async (id, newBlog) => {
     try {
-      await blogService.update(id, newBlog)
+      const updatedblog = await blogService.update(id, newBlog)
+      dispatch(likeBlog(updatedblog))
       dispatch(setNotification('blog updated'))
     } catch {
       dispatch(setNotification('failed to update blog'))
@@ -77,7 +81,8 @@ const App = () => {
 
   const deleteBlog = async (id) => {
     try {
-      await blogService.remove(id)
+      const removedblog = await blogService.remove(id)
+      dispatch(removeBlog(removedblog))
       dispatch(setNotification('blog deleted'))
     } catch {
       dispatch(setNotification('failed to delete blog'))
